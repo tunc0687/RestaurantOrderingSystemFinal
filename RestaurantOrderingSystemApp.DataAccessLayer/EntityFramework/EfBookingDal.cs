@@ -12,30 +12,29 @@ namespace RestaurantOrderingSystemApp.DataAccessLayer.EntityFramework
 {
     public class EfBookingDal : GenericRepository<Booking>, IBookingDal
     {
+        private readonly RestaturantOrderingSystemContext _context;
         public EfBookingDal(RestaturantOrderingSystemContext context) : base(context)
         {
+            _context = context;
         }
 
         public void BookingStatusApproved(int id)
         {
-            using var context = new RestaturantOrderingSystemContext();
-            var result = context.Bookings.Find(id);
+            var result = _context.Bookings.Find(id);
             result.Description = "Rezervasyon Onaylandı";
-            context.SaveChanges();
+            _context.SaveChanges();
         }
 
         public void BookingStatusCancelled(int id)
         {
-            using var context = new RestaturantOrderingSystemContext();
-            var result = context.Bookings.Find(id);
+            var result = _context.Bookings.Find(id);
             result.Description = "Rezervasyon İptal Edildi";
-            context.SaveChanges();
+            _context.SaveChanges();
         }
 
         public int TotalBookingCount()
         {
-            using var context = new RestaturantOrderingSystemContext();
-            return context.Bookings
+            return _context.Bookings
                 .Count();
         }
     }

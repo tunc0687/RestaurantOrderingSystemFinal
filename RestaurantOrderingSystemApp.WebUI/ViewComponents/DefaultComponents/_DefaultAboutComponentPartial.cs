@@ -7,7 +7,7 @@ namespace RestaurantOrderingSystemApp.WebUI.ViewComponents.DefaultComponents
 {
     public class _DefaultAboutComponentPartial(IAboutService _aboutService, IMapper _mapper) : ViewComponent
     {
-        public IViewComponentResult InvokeAsync()
+        public IViewComponentResult Invoke()
         {
             var values = _mapper.Map<List<ResultAboutDto>>(_aboutService.TGetListAll());
             if (values != null)

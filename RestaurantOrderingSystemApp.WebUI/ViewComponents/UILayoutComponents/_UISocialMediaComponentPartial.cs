@@ -8,7 +8,7 @@ namespace RestaurantOrderingSystemApp.WebUI.ViewComponents.UILayoutComponents
 {
     public class _UISocialMediaComponentPartial(ISocialMediaService _socialMediaService, IMapper _mapper) : ViewComponent
     {
-        public IViewComponentResult InvokeAsync()
+        public IViewComponentResult Invoke()
         {
             var values = _mapper.Map<List<ResultSocialMediaDto>>(_socialMediaService.TGetListAll());
             if (values != null)

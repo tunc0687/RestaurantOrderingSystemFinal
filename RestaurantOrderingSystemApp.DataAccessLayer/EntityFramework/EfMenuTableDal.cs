@@ -12,44 +12,42 @@ namespace RestaurantOrderingSystemApp.DataAccessLayer.EntityFramework
 {
     public class EfMenuTableDal : GenericRepository<MenuTable>, IMenuTableDal
     {
+        private readonly RestaturantOrderingSystemContext _context;
         public EfMenuTableDal(RestaturantOrderingSystemContext context) : base(context)
         {
+            _context = context;
         }
 
         public void ChangeStatusClose(int id)
         {
-            using var context = new RestaturantOrderingSystemContext();
-            var result = context.MenuTables.Find(id);
+            var result = _context.MenuTables.Find(id);
             if (result != null)
             {
                 result.Status = false;
-                context.SaveChanges();
+                _context.SaveChanges();
             }
         }
 
         public void ChangeStatusOpen(int id)
         {
-            using var context = new RestaturantOrderingSystemContext();
-            var result = context.MenuTables.Find(id);
+            var result = _context.MenuTables.Find(id);
             if (result != null)
             {
                 result.Status = true;
-                context.SaveChanges();
+                _context.SaveChanges();
             }
         }
 
         public int MenuTableCount()
         {
-            using var context = new RestaturantOrderingSystemContext();
-            return context.MenuTables
+            return _context.MenuTables
                 .Where(x => x.Status == true)
                 .Count();
         }
 
         public int TotalMenuTableCount()
         {
-            using var context = new RestaturantOrderingSystemContext();
-            return context.MenuTables
+            return _context.MenuTables
                 .Count();
         }
     }

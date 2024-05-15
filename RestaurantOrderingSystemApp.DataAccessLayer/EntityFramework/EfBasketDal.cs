@@ -13,22 +13,22 @@ namespace RestaurantOrderingSystemApp.DataAccessLayer.EntityFramework
 {
     public class EfBasketDal : GenericRepository<Basket>, IBasketDal
     {
+        private readonly RestaturantOrderingSystemContext _context;
         public EfBasketDal(RestaturantOrderingSystemContext context) : base(context)
         {
+            _context = context;
         }
 
         public void DeleteBasketByCustomerCode(string code)
         {
-            using var context = new RestaturantOrderingSystemContext();
-            var values = context.Baskets.Where(x => x.CustomerCode == code).ToList();
-            context.RemoveRange(values);
-            context.SaveChanges();
+            var values = _context.Baskets.Where(x => x.CustomerCode == code).ToList();
+            _context.RemoveRange(values);
+            _context.SaveChanges();
         }
 
         public List<Basket> GetBasketByCustomerCodeWithProductName(string code)
         {
-            using var context = new RestaturantOrderingSystemContext();
-            return context.Baskets.Where(x => x.CustomerCode == code).Include(y => y.Product).ToList();
+            return _context.Baskets.Where(x => x.CustomerCode == code).Include(y => y.Product).ToList();
         }
     }
 }

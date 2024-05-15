@@ -12,22 +12,22 @@ namespace RestaurantOrderingSystemApp.DataAccessLayer.EntityFramework
 {
     public class EfCouponDal : GenericRepository<Coupon>, ICouponDal
     {
+        private readonly RestaturantOrderingSystemContext _context;
         public EfCouponDal(RestaturantOrderingSystemContext context) : base(context)
         {
+            _context = context;
         }
 
         public void ChangeStatus(int id)
         {
-            using var context = new RestaturantOrderingSystemContext();
-            var result = context.Coupons.Find(id);
+            var result = _context.Coupons.Find(id);
             result.Status = !result.Status;
-            context.SaveChanges();
+            _context.SaveChanges();
         }
 
         public int GetAmountByCouponCode(string couponCode)
         {
-            using var context = new RestaturantOrderingSystemContext();
-            var result = context.Coupons
+            var result = _context.Coupons
                 .Where(x => x.CouponCode == couponCode)
                 .Where(y => y.Status)
                 .Select(z => z.Amount)

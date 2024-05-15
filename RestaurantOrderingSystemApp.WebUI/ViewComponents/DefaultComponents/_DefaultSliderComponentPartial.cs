@@ -7,7 +7,7 @@ namespace RestaurantOrderingSystemApp.WebUI.ViewComponents.DefaultComponents
 {
     public class _DefaultSliderComponentPartial(IFeatureService _featureService, IMapper _mapper) : ViewComponent
     {
-        public IViewComponentResult InvokeAsync()
+        public IViewComponentResult Invoke()
         {
             var values = _mapper.Map<List<ResultFeatureDto>>(_featureService.TGetFeaturesByStatusTrue());
             if (values != null)

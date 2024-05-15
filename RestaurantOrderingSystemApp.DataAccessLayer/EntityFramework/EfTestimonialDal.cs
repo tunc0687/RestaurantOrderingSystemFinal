@@ -12,14 +12,15 @@ namespace RestaurantOrderingSystemApp.DataAccessLayer.EntityFramework
 {
     public class EfTestimonialDal : GenericRepository<Testimonial>, ITestimonialDal
     {
+        private readonly RestaturantOrderingSystemContext _context;
         public EfTestimonialDal(RestaturantOrderingSystemContext context) : base(context)
         {
+            _context = context;
         }
 
         public List<Testimonial> GetTestimonialsByStatusTrue()
         {
-            using var context = new RestaturantOrderingSystemContext();
-            return context.Testimonials
+            return _context.Testimonials
                 .Where(x => x.Status == true)
                 .ToList();
         }

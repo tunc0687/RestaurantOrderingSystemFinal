@@ -12,41 +12,39 @@ namespace RestaurantOrderingSystemApp.DataAccessLayer.EntityFramework
 {
     public class EfNotificationDal : GenericRepository<Notification>, INotificationDal
     {
+        private readonly RestaturantOrderingSystemContext _context;
         public EfNotificationDal(RestaturantOrderingSystemContext context) : base(context)
         {
+            _context = context;
         }
 
         public void AllNotificationStatusesChangeToTrue()
         {
-            using var context = new RestaturantOrderingSystemContext();
-            var values = context.Notifications.Where(x => x.Status == false).ToList();
+            var values = _context.Notifications.Where(x => x.Status == false).ToList();
             foreach (var value in values)
             {
                 value.Status = true;
             }
-            context.SaveChanges();
+            _context.SaveChanges();
         }
 
         public List<Notification> GetAllNotificationByFalse()
         {
-            using var context = new RestaturantOrderingSystemContext();
-            return context.Notifications.Where(x=>x.Status==false).ToList();
+            return _context.Notifications.Where(x=>x.Status==false).ToList();
         }
 
         public int NotificationCountByStatusFalse()
         {
-            using var context = new RestaturantOrderingSystemContext();
-            return context.Notifications.Where(x=>x.Status==false).Count(); 
+            return _context.Notifications.Where(x=>x.Status==false).Count(); 
         }
 
         public void NotificationStatusChange(int id)
         {
-            using var context = new RestaturantOrderingSystemContext(); 
-            var value = context.Notifications.Find(id);
+            var value = _context.Notifications.Find(id);
             if (value != null)
             {
                 value.Status = !value.Status;
-                context.SaveChanges();
+                _context.SaveChanges();
             }
         }
     }

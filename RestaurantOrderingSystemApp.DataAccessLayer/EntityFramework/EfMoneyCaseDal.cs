@@ -12,25 +12,25 @@ namespace RestaurantOrderingSystemApp.DataAccessLayer.EntityFramework
 {
     public class EfMoneyCaseDal : GenericRepository<MoneyCase>, IMoneyCaseDal
     {
+        private readonly RestaturantOrderingSystemContext _context;
         public EfMoneyCaseDal(RestaturantOrderingSystemContext context) : base(context)
         {
+            _context = context;
         }
 
         public void AddToMoneyCase(decimal price)
         {
-            using var context = new RestaturantOrderingSystemContext();
-            var value = context.MoneyCases.FirstOrDefault();
+            var value = _context.MoneyCases.FirstOrDefault();
             if (value != null)
             {
                 value.TotalAmount += price;
             }
-            context.SaveChanges();
+            _context.SaveChanges();
         }
 
         public decimal TotalMoneyCaseAmount()
         {
-            using var context = new RestaturantOrderingSystemContext();
-            return context.MoneyCases.Select(x => x.TotalAmount).FirstOrDefault();
+            return _context.MoneyCases.Select(x => x.TotalAmount).FirstOrDefault();
         }
     }
 }

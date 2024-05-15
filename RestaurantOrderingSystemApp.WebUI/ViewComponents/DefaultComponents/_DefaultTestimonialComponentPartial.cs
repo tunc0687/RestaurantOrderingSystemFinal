@@ -7,7 +7,7 @@ namespace RestaurantOrderingSystemApp.WebUI.ViewComponents.DefaultComponents
 {
     public class _DefaultTestimonialComponentPartial(ITestimonialService _testimonialService, IMapper _mapper) : ViewComponent
     {
-        public IViewComponentResult InvokeAsync()
+        public IViewComponentResult Invoke()
         {
             var values = _mapper.Map<List<ResultTestimonialDto>>(_testimonialService.TGetTestimonialsByStatusTrue());
             if (values != null)

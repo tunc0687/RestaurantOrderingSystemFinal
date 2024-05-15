@@ -12,18 +12,19 @@ namespace RestaurantOrderingSystemApp.DataAccessLayer.EntityFramework
 {
     public class EfDiscountDal : GenericRepository<Discount>, IDiscountDal
     {
+        private readonly RestaturantOrderingSystemContext _context;
         public EfDiscountDal(RestaturantOrderingSystemContext context) : base(context)
         {
+            _context = context;
         }
 
         public void ChangeStatus(int id)
         {
-            using var context = new RestaturantOrderingSystemContext();
-            var result = context.Discounts.Find(id);
+            var result = _context.Discounts.Find(id);
             if (result != null)
             {
                 result.Status = !result.Status;
-                context.SaveChanges();
+                _context.SaveChanges();
             }
         }
     }

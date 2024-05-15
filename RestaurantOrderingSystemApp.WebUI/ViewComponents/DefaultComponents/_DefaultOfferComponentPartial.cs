@@ -7,7 +7,7 @@ namespace RestaurantOrderingSystemApp.WebUI.ViewComponents.DefaultComponents
 {
     public class _DefaultOfferComponentPartial(IDiscountService _discountService, IMapper _mapper) : ViewComponent
     {
-        public IViewComponentResult InvokeAsync()
+        public IViewComponentResult Invoke()
         {
             var values = _mapper.Map<List<ResultDiscountDto>>(_discountService.TGetListAll());
             if (values != null)

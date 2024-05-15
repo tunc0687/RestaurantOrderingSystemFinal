@@ -8,7 +8,7 @@ namespace RestaurantOrderingSystemApp.WebUI.ViewComponents.UILayoutComponents
 {
     public class _UILayoutFooterComponentPartial(IContactService _contactService, IMapper _mapper) : ViewComponent
     {
-        public IViewComponentResult InvokeAsync()
+        public IViewComponentResult Invoke()
         {
             var values = _mapper.Map<List<ResultContactDto>>(_contactService.TGetListAll());
             if (values != null)

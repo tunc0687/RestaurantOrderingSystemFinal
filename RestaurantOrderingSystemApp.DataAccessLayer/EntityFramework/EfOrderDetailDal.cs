@@ -13,14 +13,15 @@ namespace RestaurantOrderingSystemApp.DataAccessLayer.EntityFramework
 {
     public class EfOrderDetailDal : GenericRepository<OrderDetail>, IOrderDetailDal
     {
+        private readonly RestaturantOrderingSystemContext _context;
         public EfOrderDetailDal(RestaturantOrderingSystemContext context) : base(context)
         {
+            _context = context;
         }
 
         public void ChangeDescription(int id)
         {
-            using var context = new RestaturantOrderingSystemContext();
-            var value = context.OrderDetails
+            var value = _context.OrderDetails
                 .Where(x => x.OrderDetailID == id)
                 .FirstOrDefault();
             if (value != null)
@@ -34,13 +35,12 @@ namespace RestaurantOrderingSystemApp.DataAccessLayer.EntityFramework
                     value.Description = "Sipariş Gönderildi";
                 }
             }
-            context.SaveChanges();
+            _context.SaveChanges();
         }
 
         public List<OrderDetail> GetOrderDetailsByCustomerCodeWithProducts(string code)
         {
-            using var context = new RestaturantOrderingSystemContext();
-            var values = context.OrderDetails
+            var values = _context.OrderDetails
                 .Where(x => x.CustomerCode == code)
                 .Include(y => y.Product)
                 .ToList();
@@ -49,8 +49,7 @@ namespace RestaurantOrderingSystemApp.DataAccessLayer.EntityFramework
 
         public List<OrderDetail> GetOrderDetailsWithProducts(int id)
         {
-            using var context = new RestaturantOrderingSystemContext();
-            var values = context.OrderDetails
+            var values = _context.OrderDetails
                 .Where(x => x.OrderID == id)
                 .Include(y => y.Product)
                 .ToList();

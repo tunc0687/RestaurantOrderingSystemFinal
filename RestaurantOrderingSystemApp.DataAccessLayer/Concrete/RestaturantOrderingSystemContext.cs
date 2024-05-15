@@ -15,10 +15,14 @@ namespace RestaurantOrderingSystemApp.DataAccessLayer.Concrete
         public RestaturantOrderingSystemContext()
         {
         }
-
         public RestaturantOrderingSystemContext(DbContextOptions<RestaturantOrderingSystemContext> options)
             : base(options)
         {
+        }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            base.OnConfiguring(optionsBuilder);
         }
 
         public DbSet <About> Abouts { get; set; }

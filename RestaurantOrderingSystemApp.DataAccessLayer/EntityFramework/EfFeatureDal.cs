@@ -12,25 +12,25 @@ namespace RestaurantOrderingSystemApp.DataAccessLayer.EntityFramework
 {
     public class EfFeatureDal : GenericRepository<Feature>, IfeatureDal
     {
+        private readonly RestaturantOrderingSystemContext _context;
         public EfFeatureDal(RestaturantOrderingSystemContext context) : base(context)
         {
+            _context = context;
         }
 
         public void ChangeStatus(int id)
         {
-            using var context = new RestaturantOrderingSystemContext();
-            var result = context.Features.Find(id);
+            var result = _context.Features.Find(id);
             if (result != null)
             {
                 result.Status = !result.Status;
-                context.SaveChanges();
+                _context.SaveChanges();
             }
         }
 
         public List<Feature> GetFeaturesByStatusTrue()
         {
-            using var context = new RestaturantOrderingSystemContext();
-            return context.Features
+            return _context.Features
                 .Where(x => x.Status == true)
                 .ToList();
         }
