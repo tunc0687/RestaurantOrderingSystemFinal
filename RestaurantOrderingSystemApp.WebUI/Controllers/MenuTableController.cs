@@ -6,16 +6,9 @@ using System.Text;
 
 namespace RestaurantOrderingSystemApp.WebUI.Controllers
 {
-    public class MenuTableController : Controller
+    public class MenuTableController(IMenuTableService _menuTableService, IMenuService _menuService) : Controller
     {
-        private readonly IHttpClientFactory _httpClientFactory;
-
-        public MenuTableController(IHttpClientFactory httpClientFactory)
-        {
-            _httpClientFactory = httpClientFactory;
-        }
-
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
             var client = _httpClientFactory.CreateClient();
             var responseMessage = await client.GetAsync("https://localhost:7282/api/MenuTable");
@@ -43,7 +36,7 @@ namespace RestaurantOrderingSystemApp.WebUI.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateMenuTable(CreateMenuTableDto createMenuTableDto)
+        public IActionResult CreateMenuTable(CreateMenuTableDto createMenuTableDto)
         {
             createMenuTableDto.Status = false;
             var client = _httpClientFactory.CreateClient();
@@ -57,7 +50,7 @@ namespace RestaurantOrderingSystemApp.WebUI.Controllers
             return View();
         }
 
-        public async Task<IActionResult> DeleteMenuTable(int id)
+        public IActionResult DeleteMenuTable(int id)
         {
             var client = _httpClientFactory.CreateClient();
             var responseMessage = await client.DeleteAsync($"https://localhost:7282/api/MenuTable/{id}");
@@ -69,7 +62,7 @@ namespace RestaurantOrderingSystemApp.WebUI.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> UpdateMenuTable(int id)
+        public IActionResult UpdateMenuTable(int id)
         {
             var client = _httpClientFactory.CreateClient();
             var responseMessage = await client.GetAsync($"https://localhost:7282/api/MenuTable/{id}");
@@ -83,7 +76,7 @@ namespace RestaurantOrderingSystemApp.WebUI.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> UpdateMenuTable(UpdateMenuTableDto updateMenuTableDto)
+        public IActionResult UpdateMenuTable(UpdateMenuTableDto updateMenuTableDto)
         {
             updateMenuTableDto.Status = false;
             var client = _httpClientFactory.CreateClient();
@@ -98,7 +91,7 @@ namespace RestaurantOrderingSystemApp.WebUI.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> TableListByStatus()
+        public IActionResult TableListByStatus()
         {
             var client = _httpClientFactory.CreateClient();
             var responseMessage = await client.GetAsync("https://localhost:7282/api/MenuTable");
