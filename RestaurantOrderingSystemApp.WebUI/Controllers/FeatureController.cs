@@ -7,16 +7,9 @@ using System.Text;
 
 namespace RestaurantOrderingSystemApp.WebUI.Controllers
 {
-    public class FeatureController : Controller
+    public class FeatureController(IFeatureService _featureService) : Controller
     {
-        private readonly IHttpClientFactory _httpClientFactory;
-
-        public FeatureController(IHttpClientFactory httpClientFactory)
-        {
-            _httpClientFactory = httpClientFactory;
-        }
-
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
             var client = _httpClientFactory.CreateClient();
             var responseMessage = await client.GetAsync("https://localhost:7282/api/Feature");
@@ -36,7 +29,7 @@ namespace RestaurantOrderingSystemApp.WebUI.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateFeature(CreateFeatureDto createFeatureDto, IFormFile formFile)
+        public IActionResult CreateFeature(CreateFeatureDto createFeatureDto, IFormFile formFile)
         {
             createFeatureDto.Status = true;
             createFeatureDto.ImageUrl = FileService.Upload(formFile);
@@ -51,7 +44,7 @@ namespace RestaurantOrderingSystemApp.WebUI.Controllers
             return View();
         }
 
-        public async Task<IActionResult> DeleteFeature(int id)
+        public IActionResult DeleteFeature(int id)
         {
             var client = _httpClientFactory.CreateClient();
             var responseMessage = await client.DeleteAsync($"https://localhost:7282/api/Feature/{id}");
@@ -63,7 +56,7 @@ namespace RestaurantOrderingSystemApp.WebUI.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> UpdateFeature(int id)
+        public IActionResult UpdateFeature(int id)
         {
             var client = _httpClientFactory.CreateClient();
             var responseMessage = await client.GetAsync($"https://localhost:7282/api/Feature/{id}");
@@ -77,7 +70,7 @@ namespace RestaurantOrderingSystemApp.WebUI.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> UpdateFeature(UpdateFeatureDto updateFeatureDto, IFormFile formFile)
+        public IActionResult UpdateFeature(UpdateFeatureDto updateFeatureDto, IFormFile formFile)
         {
             if (formFile != null)
             {
@@ -97,10 +90,9 @@ namespace RestaurantOrderingSystemApp.WebUI.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> ChangeStatus(int id)
+        public IActionResult ChangeStatus(int id)
         {
-            var client = _httpClientFactory.CreateClient();
-            await client.GetAsync($"https://localhost:7282/api/Feature/ChangeStatus/{id}");
+            _featureService.TChangeStatus(id);
             return RedirectToAction("Index");
         }
     }
