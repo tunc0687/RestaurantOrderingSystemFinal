@@ -1,15 +1,16 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
 using RestaurantOrderingSystemApp.BusinessLayer.Abstract;
 using RestaurantOrderingSystemApp.EntityLayer.Entities;
 using RestaurantOrderingSystemApp.WebUI.Dtos.MessageDtos;
 
 namespace RestaurantOrderingSystemApp.WebUI.Controllers
 {
-    public class MessageController(IMessageService _messageService) : Controller
+    public class MessageController(IMessageService _messageService, IMapper _mapper) : Controller
     {
         public IActionResult Index()
         {
-            var values = _messageService.TGetListAll();
+            var values = _mapper.Map<List<ResultMessageDto>>(_messageService.TGetListAll());
             if (values != null)
             {
                 return View(values);
@@ -32,7 +33,7 @@ namespace RestaurantOrderingSystemApp.WebUI.Controllers
         [HttpGet]
         public IActionResult UpdateMessage(int id)
         {
-            var value = _messageService.TGetByID(id);
+            var value = _mapper.Map<UpdateMessageDto>(_messageService.TGetByID(id));
             if (value != null)
             {
                 return View(value);

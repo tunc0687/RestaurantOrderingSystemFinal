@@ -1,35 +1,20 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
+using RestaurantOrderingSystemApp.BusinessLayer.Abstract;
 using RestaurantOrderingSystemApp.WebUI.Dtos.FeatureDtos;
-
-
 
 namespace RestaurantOrderingSystemApp.WebUI.ViewComponents.DefaultComponents
 {
-    public class _DefaultSliderComponentPartial : ViewComponent
+    public class _DefaultSliderComponentPartial(IFeatureService _featureService, IMapper _mapper) : ViewComponent
     {
-        private readonly IHttpClientFactory _httpClientFactory;
-
-        public _DefaultSliderComponentPartial(IHttpClientFactory httpClientFactory)
+        public IViewComponentResult InvokeAsync()
         {
-            _httpClientFactory = httpClientFactory;
-        }
-        public async Task<IViewComponentResult> InvokeAsync()
-        {
-
-
-            var client = _httpClientFactory.CreateClient();
-            var responseMessage = await client.GetAsync("https://localhost:7282/api/Feature/FeaturesByStatusTrue");
-            if (responseMessage.IsSuccessStatusCode)
+            var values = _mapper.Map<List<ResultFeatureDto>>(_featureService.TGetFeaturesByStatusTrue());
+            if (values != null)
             {
-                var jsonData = await responseMessage.Content.ReadAsStringAsync();
-                var values = JsonConvert.DeserializeObject<List<ResultFeatureDto>>(jsonData);
                 return View(values);
             }
             return View();
-
-
-
         }
     }
 

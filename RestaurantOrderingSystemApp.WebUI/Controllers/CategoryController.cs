@@ -55,7 +55,7 @@ namespace RestaurantOrderingSystemApp.WebUI.Controllers
         [HttpGet]
         public IActionResult UpdateCategory(int id)
         {
-            var value = _categoryService.TGetByID(id);
+            var value = _mapper.Map<UpdateCategoryDto>(_categoryService.TGetByID(id));
             if (value != null)
             {
                 return View(value);

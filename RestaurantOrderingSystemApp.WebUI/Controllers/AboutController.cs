@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
 using RestaurantOrderingSystemApp.BusinessLayer.Abstract;
 using RestaurantOrderingSystemApp.EntityLayer.Entities;
 using RestaurantOrderingSystemApp.WebUI.Dtos.AboutDtos;
@@ -6,11 +7,11 @@ using RestaurantOrderingSystemApp.WebUI.Services;
 
 namespace RestaurantOrderingSystemApp.WebUI.Controllers
 {
-    public class AboutController(IAboutService _aboutService) : Controller
+    public class AboutController(IAboutService _aboutService, IMapper _mapper) : Controller
     {
         public IActionResult Index()
         {
-            var values = _aboutService.TGetListAll();
+            var values = _mapper.Map<List<ResultAboutDto>>(_aboutService.TGetListAll());
             if (values != null)
             {
                 return View(values);
@@ -60,7 +61,7 @@ namespace RestaurantOrderingSystemApp.WebUI.Controllers
         [HttpGet]
         public IActionResult UpdateAbout(int id)
         {
-            var value = _aboutService.TGetByID(id);
+            var value = _mapper.Map<UpdateAboutDto>(_aboutService.TGetByID(id));
             if (value != null)
             {
                 return View(value);

@@ -60,7 +60,7 @@ namespace RestaurantOrderingSystemApp.WebUI.Controllers
         [HttpGet]
         public IActionResult UpdateDiscount(int id)
         {
-            var value = _discountService.TGetByID(id);
+            var value = _mapper.Map<UpdateDiscountDto>(_discountService.TGetByID(id));
             if (value != null)
             {
                 return View(value);

@@ -1,33 +1,21 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
+using RestaurantOrderingSystemApp.BusinessLayer.Abstract;
 using RestaurantOrderingSystemApp.WebUI.Dtos.DiscountDtos;
 
 namespace RestaurantOrderingSystemApp.WebUI.ViewComponents.DefaultComponents
 {
-    public class _DefaultOfferComponentPartial : ViewComponent
+    public class _DefaultOfferComponentPartial(IDiscountService _discountService, IMapper _mapper) : ViewComponent
     {
-        private readonly IHttpClientFactory _httpClientFactory;
-
-        public _DefaultOfferComponentPartial(IHttpClientFactory httpClientFactory)
+        public IViewComponentResult InvokeAsync()
         {
-            _httpClientFactory = httpClientFactory;
-        }
-        public async Task<IViewComponentResult> InvokeAsync()
-        {
-
-
-            var client = _httpClientFactory.CreateClient();
-            var responseMessage = await client.GetAsync("https://localhost:7282/api/Discount");
-            if (responseMessage.IsSuccessStatusCode)
+            var values = _mapper.Map<List<ResultDiscountDto>>(_discountService.TGetListAll());
+            if (values != null)
             {
-                var jsonData = await responseMessage.Content.ReadAsStringAsync();
-                var values = JsonConvert.DeserializeObject<List<ResultDiscountDto>>(jsonData);
                 return View(values);
             }
             return View();
         }
-
     }
-
 }
 

@@ -34,7 +34,7 @@ namespace RestaurantOrderingSystemApp.WebUI.Controllers
             var result = await _userManager.CreateAsync(appUser, registerDto.Password);
             if (result.Succeeded)
             {
-                return RedirectToAction("Index", "ProgressBars");
+                return RedirectToAction("Index", "Category");
             }
 
             return View();

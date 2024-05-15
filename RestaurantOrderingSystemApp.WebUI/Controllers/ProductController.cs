@@ -82,7 +82,7 @@ namespace RestaurantOrderingSystemApp.WebUI.Controllers
                                             }).ToList();
             ViewBag.v = values2;
 
-            var value = _productService.TGetByID(id);
+            var value = _mapper.Map<UpdateProductDto>(_productService.TGetByID(id));
             if (value != null)
             {
                 return View(value);

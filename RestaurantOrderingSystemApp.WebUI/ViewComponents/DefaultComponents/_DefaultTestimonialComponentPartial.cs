@@ -1,33 +1,20 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
+using RestaurantOrderingSystemApp.BusinessLayer.Abstract;
 using RestaurantOrderingSystemApp.WebUI.Dtos.TestimonialDtos;
 
 namespace RestaurantOrderingSystemApp.WebUI.ViewComponents.DefaultComponents
 {
-    public class _DefaultTestimonialComponentPartial : ViewComponent
+    public class _DefaultTestimonialComponentPartial(ITestimonialService _testimonialService, IMapper _mapper) : ViewComponent
     {
-        private readonly IHttpClientFactory _httpClientFactory;
-
-        public _DefaultTestimonialComponentPartial(IHttpClientFactory httpClientFactory)
+        public IViewComponentResult InvokeAsync()
         {
-            _httpClientFactory = httpClientFactory;
-        }
-        public async Task<IViewComponentResult> InvokeAsync()
-        {
-
-
-            var client = _httpClientFactory.CreateClient();
-            var responseMessage = await client.GetAsync("https://localhost:7282/api/Testimonial/TestimonialsByStatusTrue");
-            if (responseMessage.IsSuccessStatusCode)
+            var values = _mapper.Map<List<ResultTestimonialDto>>(_testimonialService.TGetTestimonialsByStatusTrue());
+            if (values != null)
             {
-                var jsonData = await responseMessage.Content.ReadAsStringAsync();
-                var values = JsonConvert.DeserializeObject<List<ResultTestimonialDto>>(jsonData);
                 return View(values);
             }
             return View();
-
-
-
         }
     }
 }

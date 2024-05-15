@@ -56,7 +56,7 @@ namespace RestaurantOrderingSystemApp.WebUI.Controllers
         [HttpGet]
         public IActionResult UpdateSocialMedia(int id)
         {
-            var value = _socialMediaService.TGetByID(id);
+            var value = _mapper.Map<UpdateSocialMediaDto>(_socialMediaService.TGetByID(id));
             if (value != null)
             {
                 return View(value);

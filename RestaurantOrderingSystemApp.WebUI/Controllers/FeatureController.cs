@@ -62,7 +62,7 @@ namespace RestaurantOrderingSystemApp.WebUI.Controllers
         [HttpGet]
         public IActionResult UpdateFeature(int id)
         {
-            var value = _featureService.TGetByID(id);
+            var value = _mapper.Map<UpdateFeatureDto>(_featureService.TGetByID(id));
             if (value != null)
             {
                 return View(value);

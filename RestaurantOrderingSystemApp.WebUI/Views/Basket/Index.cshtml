@@ -147,7 +147,7 @@
                 var totalpricewithdiscount = $("#totalpricewithdiscount");
                 var finalprice = $("#finalprice");
                 $.ajax({
-                    url: `https://localhost:7282/api/Coupon/GetAmountByCouponCode?couponCode=${couponCode}`,
+                    url: `/Coupon/GetAmountByCouponCode?couponCode=${couponCode}`,
                     method: "GET",
                     success: function (response) {
                         var discount = 0;

@@ -1,15 +1,16 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
 using RestaurantOrderingSystemApp.BusinessLayer.Abstract;
 using RestaurantOrderingSystemApp.EntityLayer.Entities;
 using RestaurantOrderingSystemApp.WebUI.Dtos.NotificationDtos;
 
 namespace RestaurantOrderingSystemApp.WebUI.Controllers
 {
-    public class NotificationsController(INotificationService _notificationService) : Controller
+    public class NotificationsController(INotificationService _notificationService, IMapper _mapper) : Controller
     {
         public IActionResult Index()
         {
-            var values = _notificationService.TGetListAll();
+            var values = _mapper.Map<List<ResultNotificationDto>>(_notificationService.TGetListAll());
             if (values != null)
             {
                 return View(values);
@@ -57,7 +58,7 @@ namespace RestaurantOrderingSystemApp.WebUI.Controllers
         [HttpGet]
         public IActionResult UpdateNotification(int id)
         {
-            var value = _notificationService.TGetByID(id);
+            var value = _mapper.Map<UpdateNotificationDto>(_notificationService.TGetByID(id));
             if (value != null)
             {
                 return View(value);

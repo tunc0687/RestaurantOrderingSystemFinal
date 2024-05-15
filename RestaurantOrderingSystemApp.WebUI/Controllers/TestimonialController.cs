@@ -1,10 +1,8 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 using RestaurantOrderingSystemApp.BusinessLayer.Abstract;
 using RestaurantOrderingSystemApp.EntityLayer.Entities;
 using RestaurantOrderingSystemApp.WebUI.Dtos.TestimonialDtos;
-using System.Text;
 
 namespace RestaurantOrderingSystemApp.WebUI.Controllers
 {
@@ -64,7 +62,7 @@ namespace RestaurantOrderingSystemApp.WebUI.Controllers
         [HttpGet]
         public IActionResult UpdateTestimonial(int id)
         {
-            var value = _testimonialService.TGetByID(id);
+            var value = _mapper.Map<UpdateTestimonialDto>(_testimonialService.TGetByID(id));
             if (value != null)
             {
                 return View(value);

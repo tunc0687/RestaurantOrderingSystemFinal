@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
 using RestaurantOrderingSystemApp.BusinessLayer.Abstract;
 using RestaurantOrderingSystemApp.EntityLayer.Entities;
 using RestaurantOrderingSystemApp.WebUI.Dtos.BookingDtos;
@@ -7,11 +8,11 @@ using RestaurantOrderingSystemApp.WebUI.Services;
 
 namespace RestaurantOrderingSystemApp.WebUI.Controllers
 {
-    public class BookingController(IBookingService _bookingService) : Controller
+    public class BookingController(IBookingService _bookingService, IMapper _mapper) : Controller
     {
         public IActionResult Index()
         {
-            var values = _bookingService.TGetListAll();
+            var values = _mapper.Map<List<ResultBookingDto>>(_bookingService.TGetListAll());
             if (values != null)
             {
                 return View(values);
@@ -22,6 +23,11 @@ namespace RestaurantOrderingSystemApp.WebUI.Controllers
         [HttpGet]
         public IActionResult GetBookingListByStatusToIncoming()
         {
+            var values = _mapper.Map<List<ResultBookingDto>>(_bookingService.TFindList(x => x.Description == "Rezervasyon Alındı"));
+            if (values != null)
+            {
+                return View(values);
+            }
             return View();
         }
 
@@ -68,7 +74,7 @@ namespace RestaurantOrderingSystemApp.WebUI.Controllers
         [HttpGet]
         public IActionResult UpdateBooking(int id)
         {
-            var value = _bookingService.TGetByID(id);
+            var value = _mapper.Map<UpdateBookingDto>(_bookingService.TGetByID(id));
             if (value != null)
             {
                 return View(value);
@@ -148,7 +154,7 @@ namespace RestaurantOrderingSystemApp.WebUI.Controllers
         [HttpGet]
         public IActionResult GetBookingListByStatus(string description)
         {
-            var values = _bookingService.TFindList(x => x.Description == description);
+            var values = _mapper.Map<List<ResultBookingDto>>(_bookingService.TFindList(x => x.Description == description));
             if (values != null)
             {
                 ViewBag.Description = description;

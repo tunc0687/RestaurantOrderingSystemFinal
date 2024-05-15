@@ -61,7 +61,7 @@ namespace RestaurantOrderingSystemApp.WebUI.Controllers
         [HttpGet]
         public IActionResult UpdateContact(int id)
         {
-            var value = _contactService.TGetByID(id);
+            var value = _mapper.Map<UpdateContactDto>(_contactService.TGetByID(id));
             if (value != null)
             {
                 return View(value);

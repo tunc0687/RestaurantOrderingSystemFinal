@@ -37,7 +37,7 @@ namespace RestaurantOrderingSystemApp.WebUI.Controllers
                     HttpContext.Session.SetString("Surname", values.Surname);
                 }
                 
-                return RedirectToAction("Index", "ProgressBars");
+                return RedirectToAction("Index", "Category");
             }
             return View();
         }

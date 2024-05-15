@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
 using RestaurantOrderingSystemApp.BusinessLayer.Abstract;
 using RestaurantOrderingSystemApp.EntityLayer.Entities;
 using RestaurantOrderingSystemApp.WebUI.Dtos.MenuTableDtos;
@@ -6,11 +7,11 @@ using RestaurantOrderingSystemApp.WebUI.Services;
 
 namespace RestaurantOrderingSystemApp.WebUI.Controllers
 {
-    public class MenuTableController(IMenuTableService _menuTableService) : Controller
+    public class MenuTableController(IMenuTableService _menuTableService, IMapper _mapper) : Controller
     {
         public IActionResult Index()
         {
-            var values = _menuTableService.TGetListAll();
+            var values = _mapper.Map<List<ResultMenuTableDto>>(_menuTableService.TGetListAll());
             if (values != null)
             {
                 List<string> menuTablesQrCodeImages = new List<string>();
@@ -66,7 +67,7 @@ namespace RestaurantOrderingSystemApp.WebUI.Controllers
         [HttpGet]
         public IActionResult UpdateMenuTable(int id)
         {
-            var value = _menuTableService.TGetByID(id);
+            var value = _mapper.Map<UpdateMenuTableDto>(_menuTableService.TGetByID(id));
             if (value != null)
             {
                 return View(value);
@@ -97,7 +98,7 @@ namespace RestaurantOrderingSystemApp.WebUI.Controllers
         [HttpGet]
         public IActionResult TableListByStatus()
         {
-            var values = _menuTableService.TGetListAll();
+            var values = _mapper.Map<List<ResultMenuTableDto>>(_menuTableService.TGetListAll());
             if (values != null)
             {
                 return View(values);

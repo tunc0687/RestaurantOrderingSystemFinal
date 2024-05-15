@@ -1,15 +1,16 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
 using RestaurantOrderingSystemApp.BusinessLayer.Abstract;
 using RestaurantOrderingSystemApp.EntityLayer.Entities;
 using RestaurantOrderingSystemApp.WebUI.Dtos.CouponDtos;
 
 namespace RestaurantOrderingSystemApp.WebUI.Controllers
 {
-    public class CouponController(ICouponService _couponService) : Controller
+    public class CouponController(ICouponService _couponService, IMapper _mapper) : Controller
     {
         public IActionResult Index()
         {
-            var values = _couponService.TGetListAll();
+            var values = _mapper.Map<List<ResultCouponDto>>(_couponService.TGetListAll());
             if (values != null)
             {
                 return View(values);
@@ -56,7 +57,7 @@ namespace RestaurantOrderingSystemApp.WebUI.Controllers
         [HttpGet]
         public IActionResult UpdateCoupon(int id)
         {
-            var value = _couponService.TGetByID(id);
+            var value = _mapper.Map<UpdateCouponDto>(_couponService.TGetByID(id));
             if (value != null)
             {
                 return View(value);
@@ -88,6 +89,13 @@ namespace RestaurantOrderingSystemApp.WebUI.Controllers
         {
             _couponService.TChangeStatus(id);
             return RedirectToAction("Index");
+        }
+
+        [HttpGet]
+        public IActionResult GetAmountByCouponCode(string couponCode)
+        {
+            var value = _couponService.TGetAmountByCouponCode(couponCode);
+            return View(value);
         }
     }
 }
