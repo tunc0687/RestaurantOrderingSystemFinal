@@ -1,99 +1,15 @@
-﻿<script src="~/lib/jquery/dist/jquery.min.js"></script>
-<script src="~/js/site.js" asp-append-version="true"></script>
-<script src="~/lib/microsoft/signalr/dist/browser/signalr.min.js"></script>
-
-<script type="text/javascript">
-    $(document).ready(() => {
-        var connection = new signalR.HubConnectionBuilder().withUrl("https://localhost:7282/SignalRHub").build();
-        connection.start().then(() => {
-            setInterval(() => {
-                connection.invoke("SendNotification");
-            }, 1000);
-        }).catch((err) => { console.log(err) });
-
-        connection.on("ReceiveNotificationCountByFalse", (value) => {
-            $("#notificationcount").text(value);
-            $("#noticount").text(value);
-        });
-        connection.on("ReceiveNotificationListByFalse", (value) => {
-            console.log(value);
-            let tablehtml = ``;
-            let iconClass;
-            $.each(value, (index, item) => {
-                if (item.iconType == "Sipariş") {
-                    iconClass = "ri-menu-add-fill text-warning"; // Yeni Sipariş
-                }
-                else if (item.iconType == "Yorum") {
-                    iconClass = "bi bi-chat-left-text text-success"; // Yeni Yorum
-                }
-                else if (item.iconType == "Rezervasyon") {
-                    iconClass = "bx bx-support text-primary"; // Yeni Rezervasyon
-                }
-
-                let dateTime = item.date.split('-');
-                let date = dateTime[1] + "/" + dateTime[2].slice(0, 2) + "/" + dateTime[0] + " - " + dateTime[2].slice(3, 8);
-                tablehtml += ` <li class="notification-item">
-                                    <i class="${iconClass}"></i>
-                                    <div>
-                                        <p>${item.description}</p>
-                                        <p>${date}</p>
-                                    </div>
-                                </li>
-                                <li>
-                                    <hr class="dropdown-divider">
-                                </li>`;
-
-            });
-            $("#notificationlist").html(tablehtml);
-        });
-    });
-</script>
-
-<script type="text/javascript">
-    $(document).ready(() => {
-        var connection = new signalR.HubConnectionBuilder().withUrl("https://localhost:7282/SignalRHub").build();
-        connection.start().then(() => {
-            setInterval(() => {
-                connection.invoke("SendMessageUI");
-            }, 1000);
-        }).catch((err) => { console.log(err) });
-
-        connection.on("ReceiveMessageCountByFalse", (value) => {
-            $("#messagecount").text(value);
-            $("#messcount").text(value);
-        });
-        connection.on("ReceiveMessageListByFalse", (value) => {
-            console.log(value);
-            let tablehtml = ``;
-            $.each(value, (index, item) => {
-
-                let dateTime = item.messageSendDate.split('-');
-                let date = dateTime[1] + "/" + dateTime[2].slice(0, 2) + "/" + dateTime[0] + " - " + dateTime[2].slice(3, 8);
-                tablehtml += ` <li class="message-item">
-                                <a href="javascript:void(0)">
-                                    <img src="/images/message_profile.png" alt="" class="rounded-circle">
-                                    <div>
-                                        <h4>${item.nameSurname}</h4>
-                                        <p>${item.subject}</p>
-                                        <p>${date}</p>
-                                    </div>
-                                 </a>
-                                </li>
-                                <li>
-                                    <hr class="dropdown-divider">
-                                </li>`;
-
-            });
-            $("#messagelist").html(tablehtml);
-        });
-    });
-</script>
+﻿@model Tuple<List<ResultNotificationDto>, List<ResultMessageDto>>
+@{
+    var iconClass = "";
+    var nCount = ViewBag.NCount;
+    var mCount = ViewBag.MCount;
+}
 
 
 <header id="header" class="header fixed-top d-flex align-items-center">
 
     <div class="d-flex align-items-center justify-content-between">
-        <a href="/ProgressBars/Index/" class="logo d-flex align-items-center">
+        <a href="/Category/Index/" class="logo d-flex align-items-center">
             <img src="~/NiceAdmin/assets/img/logo.png" alt="">
             <span class="d-none d-lg-block">Admin</span>
         </a>
@@ -120,20 +36,47 @@
 
                 <a class="nav-link nav-icon" href="#" data-bs-toggle="dropdown">
                     <i class="bi bi-bell"></i>
-                    <span class="badge bg-primary badge-number" id="notificationcount"></span>
+                    <span class="badge bg-primary badge-number" id="notificationcount">
+                        @nCount
+                    </span>
                 </a><!-- End Notification Icon -->
 
                 <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow notifications">
                     <li class="dropdown-header">
-                        <strong id="noticount"></strong> yeni bildiriminiz var
+                        <strong id="noticount">@nCount</strong> yeni bildiriminiz var
                         <a href="/Notifications/AllNotificationStatusesChangeToTrue/"><span class="badge rounded-pill bg-primary p-2 ms-2">Tümünü Okundu Olarak İşaretle</span></a>
                     </li>
                     <li>
                         <hr class="dropdown-divider">
                     </li>
-                    <li>
-                        <ul id="notificationlist"></ul>
-                    </li>
+
+                    @foreach (var item in Model.Item1)
+                    {
+                        @{
+                            if (item.IconType == "Sipariş")
+                            {
+                                iconClass = "ri-menu-add-fill text-warning"; // Yeni Sipariş
+                            }
+                            else if (item.IconType == "Yorum")
+                            {
+                                iconClass = "bi bi-chat-left-text text-success"; // Yeni Yorum
+                            }
+                            else if (item.IconType == "Rezervasyon")
+                            {
+                                iconClass = "bx bx-support text-primary"; // Yeni Rezervasyon
+                            }
+                        }
+                        <li class="notification-item">
+                            <i class="@iconClass"></i>
+                            <div>
+                                <p>@item.Description</p>
+                                <p>@item.Date</p>
+                            </div>
+                        </li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                    }
 
                     <li class="dropdown-footer">
                         <a href="/Notifications/Index/">Tüm bildirimleri görüntüle</a>
@@ -147,20 +90,35 @@
 
                 <a class="nav-link nav-icon" href="#" data-bs-toggle="dropdown">
                     <i class="bi bi-chat-left-text"></i>
-                    <span class="badge bg-success badge-number" id="messagecount"></span>
+                    <span class="badge bg-success badge-number" id="messagecount">
+                        @mCount
+                    </span>
                 </a><!-- End Messages Icon -->
 
                 <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow messages">
                     <li class="dropdown-header">
-                        <strong id="messcount"></strong> yeni mesajınız var
+                        <strong id="messcount">@mCount</strong> yeni mesajınız var
                         <a href="/Message/AllMessageStatusesChangeToTrue/"><span class="badge rounded-pill bg-primary p-2 ms-2">Tümünü Okundu Olarak İşaretle</span></a>
                     </li>
                     <li>
                         <hr class="dropdown-divider">
                     </li>
-                    <li>
-                        <ul id="messagelist"></ul>
-                    </li>
+                    @foreach (var item in Model.Item2)
+                    {
+                        <li class="message-item">
+                            <a href="javascript:void(0)">
+                                <img src="/images/message_profile.png" alt="" class="rounded-circle">
+                                <div>
+                                    <h4>@item.NameSurname</h4>
+                                    <p>@item.Subject</p>
+                                    <p>@item.MessageSendDate</p>
+                                </div>
+                            </a>
+                        </li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                    }
                     <li class="dropdown-footer">
                         <a href="/Message/Index/">Tüm mesajları görüntüle</a>
                     </li>
