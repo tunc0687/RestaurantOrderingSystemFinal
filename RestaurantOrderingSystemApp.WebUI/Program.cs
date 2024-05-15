@@ -18,7 +18,7 @@ builder.Services.AddHttpClient();
 
 //builder.Services.AddSignalR();
 
-builder.Services.AddDbContext<RestaturantOrderingSystemContext>(options => options.UseSqlServer(builder.Configuration.GetValue<string>("MssqlDbSettings:ConnectionString")), ServiceLifetime.Scoped);
+builder.Services.AddDbContext<RestaturantOrderingSystemContext>(options => options.UseSqlServer(builder.Configuration.GetValue<string>("MssqlDbSettingsLocal:ConnectionString")), ServiceLifetime.Scoped);
 
 builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
 
