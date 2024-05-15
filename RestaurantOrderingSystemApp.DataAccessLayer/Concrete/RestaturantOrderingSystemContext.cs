@@ -12,7 +12,12 @@ namespace RestaurantOrderingSystemApp.DataAccessLayer.Concrete
 {
     public class RestaturantOrderingSystemContext : IdentityDbContext<AppUser, AppRole, int>
     {
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        public RestaturantOrderingSystemContext()
+        {
+        }
+
+        public RestaturantOrderingSystemContext(DbContextOptions<RestaturantOrderingSystemContext> options)
+            : base(options)
         {
         }
 
