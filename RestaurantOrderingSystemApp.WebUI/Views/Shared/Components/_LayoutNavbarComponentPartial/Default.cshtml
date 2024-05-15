@@ -52,20 +52,19 @@
 
                     @foreach (var item in Model.Item1)
                     {
-                        @{
-                            if (item.IconType == "Sipariş")
-                            {
-                                iconClass = "ri-menu-add-fill text-warning"; // Yeni Sipariş
-                            }
-                            else if (item.IconType == "Yorum")
-                            {
-                                iconClass = "bi bi-chat-left-text text-success"; // Yeni Yorum
-                            }
-                            else if (item.IconType == "Rezervasyon")
-                            {
-                                iconClass = "bx bx-support text-primary"; // Yeni Rezervasyon
-                            }
+                        @if (item.IconType == "Sipariş")
+                        {
+                            iconClass = "ri-menu-add-fill text-warning"; // Yeni Sipariş
                         }
+                        else if (item.IconType == "Yorum")
+                        {
+                            iconClass = "bi bi-chat-left-text text-success"; // Yeni Yorum
+                        }
+                        else if (item.IconType == "Rezervasyon")
+                        {
+                            iconClass = "bx bx-support text-primary"; // Yeni Rezervasyon
+                        }
+
                         <li class="notification-item">
                             <i class="@iconClass"></i>
                             <div>
