@@ -1,42 +1,30 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Newtonsoft.Json;
+using RestaurantOrderingSystemApp.BusinessLayer.Abstract;
+using RestaurantOrderingSystemApp.EntityLayer.Entities;
 using RestaurantOrderingSystemApp.WebUI.Dtos.CategoryDtos;
 using RestaurantOrderingSystemApp.WebUI.Dtos.ProductDtos;
 using RestaurantOrderingSystemApp.WebUI.Services;
-using System.Text;
 
 namespace RestaurantOrderingSystemApp.WebUI.Controllers
 {
-    public class ProductController : Controller
+    public class ProductController(IProductService _productService, ICategoryService _categoryService, IMapper _mapper) : Controller
     {
-        private readonly IHttpClientFactory _httpClientFactory;
-
-        public ProductController(IHttpClientFactory httpClientFactory)
+        public IActionResult Index()
         {
-            _httpClientFactory = httpClientFactory;
-        }
-
-        public async Task<IActionResult> Index()
-        {
-            var client = _httpClientFactory.CreateClient();
-            var responseMessage = await client.GetAsync("https://localhost:7282/api/Product/ProductListWithCategory");
-            if (responseMessage.IsSuccessStatusCode)
+            var values = _mapper.Map<List<ResultProductWithCategory>>(_productService.TGetProductsWithCategories());
+            if (values != null)
             {
-                var jsonData = await responseMessage.Content.ReadAsStringAsync();
-                var values = JsonConvert.DeserializeObject<List<ResultProductDto>>(jsonData);
                 return View(values);
             }
             return View();
         }
 
         [HttpGet]
-        public async Task<IActionResult> CreateProduct()
+        public IActionResult CreateProduct()
         {
-            var client = _httpClientFactory.CreateClient();
-            var responseMessage = await client.GetAsync("https://localhost:7282/api/Category");
-            var jsonData = await responseMessage.Content.ReadAsStringAsync();
-            var values = JsonConvert.DeserializeObject<List<ResultCategoryDto>>(jsonData);
+            var values = _mapper.Map<List<ResultCategoryDto>>(_categoryService.TGetListAll());
             List<SelectListItem> values2 = (from x in values
                                             select new SelectListItem
                                             {
@@ -48,26 +36,34 @@ namespace RestaurantOrderingSystemApp.WebUI.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateProduct(CreateProductDto createProductDto, IFormFile formFile)
+        public IActionResult CreateProduct(CreateProductDto createProductDto, IFormFile formFile)
         {
             createProductDto.ImageUrl = FileService.Upload(formFile);
             createProductDto.ProductStatus = true;
-            var client = _httpClientFactory.CreateClient();
-            var jsonData = JsonConvert.SerializeObject(createProductDto);
-            StringContent stringContent = new StringContent(jsonData, Encoding.UTF8, "application/json");
-            var responseMessage = await client.PostAsync("https://localhost:7282/api/Product", stringContent);
-            if (responseMessage.IsSuccessStatusCode)
+
+            var product = new Product()
+            {
+                Description = createProductDto.Description,
+                ImageUrl = createProductDto.ImageUrl,
+                Price = createProductDto.Price,
+                ProductName = createProductDto.ProductName,
+                ProductStatus = createProductDto.ProductStatus,
+                CategoryID = createProductDto.CategoryID
+            };
+            _productService.TAdd(product);
+            if (product.ProductID > 0)
             {
                 return RedirectToAction("Index");
             }
             return View();
         }
 
-        public async Task<IActionResult> DeleteProduct(int id)
+        public IActionResult DeleteProduct(int id)
         {
-            var client = _httpClientFactory.CreateClient();
-            var responseMessage = await client.DeleteAsync($"https://localhost:7282/api/Product/{id}");
-            if (responseMessage.IsSuccessStatusCode)
+            var value = _productService.TGetByID(id);
+            _productService.TDelete(value);
+            value = _productService.TGetByID(id);
+            if (value == null)
             {
                 return RedirectToAction("Index");
             }
@@ -75,12 +71,9 @@ namespace RestaurantOrderingSystemApp.WebUI.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> UpdateProduct(int id)
+        public IActionResult UpdateProduct(int id)
         {
-            var client1 = _httpClientFactory.CreateClient();
-            var responseMessage1 = await client1.GetAsync("https://localhost:7282/api/Category");
-            var jsonData1 = await responseMessage1.Content.ReadAsStringAsync();
-            var values1 = JsonConvert.DeserializeObject<List<ResultCategoryDto>>(jsonData1);
+            var values1 = _mapper.Map<List<ResultCategoryDto>>(_categoryService.TGetListAll());
             List<SelectListItem> values2 = (from x in values1
                                             select new SelectListItem
                                             {
@@ -89,30 +82,34 @@ namespace RestaurantOrderingSystemApp.WebUI.Controllers
                                             }).ToList();
             ViewBag.v = values2;
 
-            var client = _httpClientFactory.CreateClient();
-            var responseMessage = await client.GetAsync($"https://localhost:7282/api/Product/{id}");
-            if (responseMessage.IsSuccessStatusCode)
+            var value = _productService.TGetByID(id);
+            if (value != null)
             {
-                var jsonData = await responseMessage.Content.ReadAsStringAsync();
-                var values = JsonConvert.DeserializeObject<UpdateProductDto>(jsonData);
-                return View(values);
+                return View(value);
             }
             return View();
         }
 
         [HttpPost]
-        public async Task<IActionResult> UpdateProduct(UpdateProductDto updateProductDto, IFormFile formFile)
+        public IActionResult UpdateProduct(UpdateProductDto updateProductDto, IFormFile formFile)
         {
             if (formFile != null)
             {
                 updateProductDto.ImageUrl = FileService.Upload(formFile);
             }
 
-            var client = _httpClientFactory.CreateClient();
-            var jsonData = JsonConvert.SerializeObject(updateProductDto);
-            StringContent stringContent = new StringContent(jsonData, Encoding.UTF8, "application/json");
-            var responseMessage = await client.PutAsync("https://localhost:7282/api/Product", stringContent);
-            if (responseMessage.IsSuccessStatusCode)
+            var product = new Product()
+            {
+                Description = updateProductDto.Description,
+                ImageUrl = updateProductDto.ImageUrl,
+                Price = updateProductDto.Price,
+                ProductName = updateProductDto.ProductName,
+                ProductStatus = updateProductDto.ProductStatus,
+                ProductID = updateProductDto.ProductID,
+                CategoryID = updateProductDto.CategoryID
+            };
+            _productService.TUpdate(product);
+            if (product.ProductID > 0)
             {
                 return RedirectToAction("Index");
             }

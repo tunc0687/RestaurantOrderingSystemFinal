@@ -1,27 +1,18 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
+using RestaurantOrderingSystemApp.BusinessLayer.Abstract;
+using RestaurantOrderingSystemApp.EntityLayer.Entities;
 using RestaurantOrderingSystemApp.WebUI.Dtos.SocialMediaDtos;
-using System.Text;
 
 namespace RestaurantOrderingSystemApp.WebUI.Controllers
 {
-    public class SocialMediaController : Controller
+    public class SocialMediaController(ISocialMediaService _socialMediaService, IMapper _mapper) : Controller
     {
-        private readonly IHttpClientFactory _httpClientFactory;
-
-        public SocialMediaController(IHttpClientFactory httpClientFactory)
+        public IActionResult Index()
         {
-            _httpClientFactory = httpClientFactory;
-        }
-
-        public async Task<IActionResult> Index()
-        {
-            var client = _httpClientFactory.CreateClient();
-            var responseMessage = await client.GetAsync("https://localhost:7282/api/SocialMedia");
-            if (responseMessage.IsSuccessStatusCode)
+            var values = _mapper.Map<List<ResultSocialMediaDto>>(_socialMediaService.TGetListAll());
+            if (values != null)
             {
-                var jsonData = await responseMessage.Content.ReadAsStringAsync();
-                var values = JsonConvert.DeserializeObject<List<ResultSocialMediaDto>>(jsonData);
                 return View(values);
             }
             return View();
@@ -34,24 +25,28 @@ namespace RestaurantOrderingSystemApp.WebUI.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateSocialMedia(CreateSocialMediaDto createSocialMediaDto)
+        public IActionResult CreateSocialMedia(CreateSocialMediaDto createSocialMediaDto)
         {
-            var client = _httpClientFactory.CreateClient();
-            var jsonData = JsonConvert.SerializeObject(createSocialMediaDto);
-            StringContent stringContent = new StringContent(jsonData, Encoding.UTF8, "application/json");
-            var responseMessage = await client.PostAsync("https://localhost:7282/api/SocialMedia", stringContent);
-            if (responseMessage.IsSuccessStatusCode)
+            var socialMedia = new SocialMedia()
+            {
+                Icon = createSocialMediaDto.Icon,
+                Title = createSocialMediaDto.Title,
+                Url = createSocialMediaDto.Url,
+            };
+            _socialMediaService.TAdd(socialMedia);
+            if (socialMedia.SocialMediaID > 0)
             {
                 return RedirectToAction("Index");
             }
             return View();
         }
 
-        public async Task<IActionResult> DeleteSocialMedia(int id)
+        public IActionResult DeleteSocialMedia(int id)
         {
-            var client = _httpClientFactory.CreateClient();
-            var responseMessage = await client.DeleteAsync($"https://localhost:7282/api/SocialMedia/{id}");
-            if (responseMessage.IsSuccessStatusCode)
+            var value = _socialMediaService.TGetByID(id);
+            _socialMediaService.TDelete(value);
+            value = _socialMediaService.TGetByID(id);
+            if (value == null)
             {
                 return RedirectToAction("Index");
             }
@@ -59,27 +54,29 @@ namespace RestaurantOrderingSystemApp.WebUI.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> UpdateSocialMedia(int id)
+        public IActionResult UpdateSocialMedia(int id)
         {
-            var client = _httpClientFactory.CreateClient();
-            var responseMessage = await client.GetAsync($"https://localhost:7282/api/SocialMedia/{id}");
-            if (responseMessage.IsSuccessStatusCode)
+            var value = _socialMediaService.TGetByID(id);
+            if (value != null)
             {
-                var jsonData = await responseMessage.Content.ReadAsStringAsync();
-                var values = JsonConvert.DeserializeObject<UpdateSocialMediaDto>(jsonData);
-                return View(values);
+                return View(value);
             }
             return View();
         }
 
         [HttpPost]
-        public async Task<IActionResult> UpdateSocialMedia(UpdateSocialMediaDto updateSocialMediaDto)
+        public IActionResult UpdateSocialMedia(UpdateSocialMediaDto updateSocialMediaDto)
         {
-            var client = _httpClientFactory.CreateClient();
-            var jsonData = JsonConvert.SerializeObject(updateSocialMediaDto);
-            StringContent stringContent = new StringContent(jsonData, Encoding.UTF8, "application/json");
-            var responseMessage = await client.PutAsync("https://localhost:7282/api/SocialMedia", stringContent);
-            if (responseMessage.IsSuccessStatusCode)
+            var socialMedia = new SocialMedia()
+            {
+                Icon = updateSocialMediaDto.Icon,
+                Title = updateSocialMediaDto.Title,
+                Url = updateSocialMediaDto.Url,
+                SocialMediaID = updateSocialMediaDto.SocialMediaID,
+
+            };
+            _socialMediaService.TUpdate(socialMedia);
+            if (socialMedia.SocialMediaID > 0)
             {
                 return RedirectToAction("Index");
             }

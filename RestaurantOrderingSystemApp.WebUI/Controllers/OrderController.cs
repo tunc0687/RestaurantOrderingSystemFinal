@@ -1,45 +1,49 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Newtonsoft.Json;
-using RestaurantOrderingSystemApp.WebUI.Dtos.MenuTableDtos;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
+using RestaurantOrderingSystemApp.BusinessLayer.Abstract;
+using RestaurantOrderingSystemApp.EntityLayer.Entities;
 using RestaurantOrderingSystemApp.WebUI.Dtos.OrderDtos;
-using System.Text;
 
 namespace RestaurantOrderingSystemApp.WebUI.Controllers
 {
-    public class OrderController : Controller
+    public class OrderController(IOrderService _orderService, IMoneyCaseService _moneyCaseService, IMenuTableService _menuTableService, IMapper _mapper) : Controller
     {
-        private readonly IHttpClientFactory _httpClientFactory;
-
-        public OrderController(IHttpClientFactory httpClientFactory)
-        {
-            _httpClientFactory = httpClientFactory;
-        }
-
         public IActionResult Index()
         {
+            var values = _mapper.Map<List<ResultOrderWithMenuTableNameDto>>(_orderService.TGetOrdersWithMenuTableNames());
+            if (values != null)
+            {
+                return View(values);
+            }
             return View();
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateOrder(CreateOrderDto createOrderDto)
+        public IActionResult CreateOrder(CreateOrderDto createOrderDto)
         {
-            var client = _httpClientFactory.CreateClient();
-            var jsonData = JsonConvert.SerializeObject(createOrderDto);
-            StringContent stringContent = new StringContent(jsonData, Encoding.UTF8, "application/json");
-            var responseMessage = await client.PostAsync("https://localhost:7282/api/Order", stringContent);
-            if (responseMessage.IsSuccessStatusCode)
+            var order = new Order()
+            {
+                OrderDate = createOrderDto.OrderDate,
+                TotalPrice = createOrderDto.TotalPrice,
+                TotalDiscount = createOrderDto.TotalDiscount,
+                FinalPrice = createOrderDto.FinalPrice,
+                Status = true,
+                MenuTableID = createOrderDto.MenuTableID,
+            };
+            _orderService.TAdd(order);
+            if (order.OrderID > 0)
             {
                 return RedirectToAction("Index");
             }
             return View();
         }
 
-        public async Task<IActionResult> DeleteOrder(int id)
+        public IActionResult DeleteOrder(int id)
         {
-            var client = _httpClientFactory.CreateClient();
-            var responseMessage = await client.DeleteAsync($"https://localhost:7282/api/Order/{id}");
-            if (responseMessage.IsSuccessStatusCode)
+            var value = _orderService.TGetByID(id);
+            _orderService.TDelete(value);
+            value = _orderService.TGetByID(id);
+            if (value == null)
             {
                 return RedirectToAction("Index");
             }
@@ -47,13 +51,20 @@ namespace RestaurantOrderingSystemApp.WebUI.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> UpdateOrder(UpdateOrderDto updateOrderDto)
+        public IActionResult UpdateOrder(UpdateOrderDto updateOrderDto)
         {
-            var client = _httpClientFactory.CreateClient();
-            var jsonData = JsonConvert.SerializeObject(updateOrderDto);
-            StringContent stringContent = new StringContent(jsonData, Encoding.UTF8, "application/json");
-            var responseMessage = await client.PutAsync("https://localhost:7282/api/Order", stringContent);
-            if (responseMessage.IsSuccessStatusCode)
+            var order = new Order()
+            {
+                OrderID = updateOrderDto.OrderID,
+                OrderDate = updateOrderDto.OrderDate,
+                TotalPrice = updateOrderDto.TotalPrice,
+                TotalDiscount = updateOrderDto.TotalDiscount,
+                FinalPrice = updateOrderDto.FinalPrice,
+                Status = updateOrderDto.Status,
+                MenuTableID = updateOrderDto.MenuTableID,
+            };
+            _orderService.TUpdate(order);
+            if (order.OrderID > 0)
             {
                 return RedirectToAction("Index");
             }
@@ -61,12 +72,11 @@ namespace RestaurantOrderingSystemApp.WebUI.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> CloseAccount(int id, int menuTableId, decimal price)
+        public IActionResult CloseAccount(int id, int menuTableId, decimal price)
         {
-            var client = _httpClientFactory.CreateClient();
-            await client.GetAsync($"https://localhost:7282/api/Order/CloseAccount/{id}");
-            await client.GetAsync($"https://localhost:7282/api/MoneyCase/AddToMoneyCase/{price}");
-            await client.GetAsync($"https://localhost:7282/api/MenuTable/ChangeStatusClose/{menuTableId}");
+            _orderService.TCloseAccount(id);
+            _moneyCaseService.TAddToMoneyCase(price);
+            _menuTableService.TChangeStatusClose(menuTableId);
             return RedirectToAction("Index", "Order");
         }
     }

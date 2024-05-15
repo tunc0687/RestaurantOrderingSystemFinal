@@ -1,11 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
+using RestaurantOrderingSystemApp.BusinessLayer.Abstract;
 using RestaurantOrderingSystemApp.EntityLayer.Entities;
 using RestaurantOrderingSystemApp.WebUI.Dtos.BasketDtos;
 using RestaurantOrderingSystemApp.WebUI.Services;
-using System.Net.Http;
-using System.Text;
 
 namespace RestaurantOrderingSystemApp.WebUI.Controllers
 {
@@ -17,31 +15,26 @@ namespace RestaurantOrderingSystemApp.WebUI.Controllers
             var tableId = HttpContext.Session.GetInt32("MenuTableId");
             var menuTableId = Convert.ToInt32(AesOperation.Decode(mtCode));
 
-            var client = _httpClientFactory.CreateClient();
-            var responseMessage = await client.GetAsync($"https://localhost:7282/api/MenuTable/{menuTableId}");
-            if (responseMessage.IsSuccessStatusCode)
-            {
-                var jsonData = await responseMessage.Content.ReadAsStringAsync();
-                var value = JsonConvert.DeserializeObject<MenuTable>(jsonData);
 
-                if (value == null && tableId == null)
-                {
-                    return RedirectToAction("Index", "Default");
-                }
-                else if (value == null && menuTableId != 0 && tableId != null)
-                {
-                    await client.GetAsync($"https://localhost:7282/api/MenuTable/ChangeStatusClose/{HttpContext.Session.GetInt32("MenuTableId")}");
-                    HttpContext.Session.Clear();
-                    return RedirectToAction("Index", "Default");
-                }
-                else if (value != null)
-                {
-                    HttpContext.Session.SetInt32("MenuTableId", menuTableId);
-                    HttpContext.Session.SetString("CustomerCode", Guid.NewGuid().ToString().Substring(0, 8));
-                    var client2 = _httpClientFactory.CreateClient();
-                    await client2.GetAsync($"https://localhost:7282/api/MenuTable/ChangeStatusOpen/{HttpContext.Session.GetInt32("MenuTableId")}");
-                }
+            var valueMenuTable = _menuTableService.TGetByID(menuTableId);
+
+            if (valueMenuTable == null && tableId == null)
+            {
+                return RedirectToAction("Index", "Default");
             }
+            else if (valueMenuTable == null && menuTableId != 0 && tableId != null)
+            {
+                _menuTableService.TChangeStatusClose(Convert.ToInt32(tableId));
+                HttpContext.Session.Clear();
+                return RedirectToAction("Index", "Default");
+            }
+            else if (valueMenuTable != null)
+            {
+                HttpContext.Session.SetInt32("MenuTableId", menuTableId);
+                HttpContext.Session.SetString("CustomerCode", Guid.NewGuid().ToString().Substring(0, 8));
+                _menuTableService.TChangeStatusOpen(Convert.ToInt32(tableId));
+            }
+
 
             return View();
         }
@@ -49,11 +42,16 @@ namespace RestaurantOrderingSystemApp.WebUI.Controllers
         [HttpPost]
         public IActionResult AddBasket([FromBody] CreateBasketDto createBasketDto)
         {
-            var client = _httpClientFactory.CreateClient();
-            var jsonData = JsonConvert.SerializeObject(createBasketDto);
-            StringContent stringContent = new StringContent(jsonData, Encoding.UTF8, "application/json");
-            var responseMessage = await client.PostAsync("https://localhost:7282/api/Basket", stringContent);
-            if (responseMessage.IsSuccessStatusCode)
+            var basket = new Basket()
+            {
+                Count = createBasketDto.Count,
+                TotalPrice = createBasketDto.TotalPrice,
+                CustomerCode = createBasketDto.CustomerCode,
+                ProductID = createBasketDto.ProductID,
+                MenuTableID = createBasketDto.MenuTableID
+            };
+            _basketService.TAdd(basket);
+            if (basket.BasketID > 0)
             {
                 return RedirectToAction("Index");
             }

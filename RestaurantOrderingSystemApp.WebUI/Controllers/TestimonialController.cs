@@ -1,27 +1,20 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using RestaurantOrderingSystemApp.BusinessLayer.Abstract;
+using RestaurantOrderingSystemApp.EntityLayer.Entities;
 using RestaurantOrderingSystemApp.WebUI.Dtos.TestimonialDtos;
 using System.Text;
 
 namespace RestaurantOrderingSystemApp.WebUI.Controllers
 {
-    public class TestimonialController : Controller
+    public class TestimonialController(ITestimonialService _testimonialService, IMapper _mapper) : Controller
     {
-        private readonly IHttpClientFactory _httpClientFactory;
-
-        public TestimonialController(IHttpClientFactory httpClientFactory)
+        public IActionResult Index()
         {
-            _httpClientFactory = httpClientFactory;
-        }
-
-        public async Task<IActionResult> Index()
-        {
-            var client = _httpClientFactory.CreateClient();
-            var responseMessage = await client.GetAsync("https://localhost:7282/api/Testimonial");
-            if (responseMessage.IsSuccessStatusCode)
+            var values = _mapper.Map<List<ResultTestimonialDto>>(_testimonialService.TGetListAll());
+            if (values != null)
             {
-                var jsonData = await responseMessage.Content.ReadAsStringAsync();
-                var values = JsonConvert.DeserializeObject<List<ResultTestimonialDto>>(jsonData);
                 return View(values);
             }
             return View();
@@ -34,26 +27,34 @@ namespace RestaurantOrderingSystemApp.WebUI.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateTestimonial(CreateTestimonialDto createTestimonialDto)
+        public IActionResult CreateTestimonial(CreateTestimonialDto createTestimonialDto)
         {
             createTestimonialDto.Status = true;
             createTestimonialDto.ImageUrl = "images/user_testimonial.jpg";
-            var client = _httpClientFactory.CreateClient();
-            var jsonData = JsonConvert.SerializeObject(createTestimonialDto);
-            StringContent stringContent = new StringContent(jsonData, Encoding.UTF8, "application/json");
-            var responseMessage = await client.PostAsync("https://localhost:7282/api/Testimonial", stringContent);
-            if (responseMessage.IsSuccessStatusCode)
+
+
+            var testimonial = new Testimonial()
+            {
+                Comment = createTestimonialDto.Comment,
+                ImageUrl = createTestimonialDto.ImageUrl,
+                Name = createTestimonialDto.Name,
+                Status = createTestimonialDto.Status,
+                Title = createTestimonialDto.Title,
+            };
+            _testimonialService.TAdd(testimonial);
+            if (testimonial.TestimonialID > 0)
             {
                 return RedirectToAction("Index");
             }
             return View();
         }
 
-        public async Task<IActionResult> DeleteTestimonial(int id)
+        public IActionResult DeleteTestimonial(int id)
         {
-            var client = _httpClientFactory.CreateClient();
-            var responseMessage = await client.DeleteAsync($"https://localhost:7282/api/Testimonial/{id}");
-            if (responseMessage.IsSuccessStatusCode)
+            var value = _testimonialService.TGetByID(id);
+            _testimonialService.TDelete(value);
+            value = _testimonialService.TGetByID(id);
+            if (value == null)
             {
                 return RedirectToAction("Index");
             }
@@ -61,27 +62,30 @@ namespace RestaurantOrderingSystemApp.WebUI.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> UpdateTestimonial(int id)
+        public IActionResult UpdateTestimonial(int id)
         {
-            var client = _httpClientFactory.CreateClient();
-            var responseMessage = await client.GetAsync($"https://localhost:7282/api/Testimonial/{id}");
-            if (responseMessage.IsSuccessStatusCode)
+            var value = _testimonialService.TGetByID(id);
+            if (value != null)
             {
-                var jsonData = await responseMessage.Content.ReadAsStringAsync();
-                var values = JsonConvert.DeserializeObject<UpdateTestimonialDto>(jsonData);
-                return View(values);
+                return View(value);
             }
             return View();
         }
 
         [HttpPost]
-        public async Task<IActionResult> UpdateTestimonial(UpdateTestimonialDto updateTestimonialDto)
+        public IActionResult UpdateTestimonial(UpdateTestimonialDto updateTestimonialDto)
         {
-            var client = _httpClientFactory.CreateClient();
-            var jsonData = JsonConvert.SerializeObject(updateTestimonialDto);
-            StringContent stringContent = new StringContent(jsonData, Encoding.UTF8, "application/json");
-            var responseMessage = await client.PutAsync("https://localhost:7282/api/Testimonial", stringContent);
-            if (responseMessage.IsSuccessStatusCode)
+            var testimonial = new Testimonial()
+            {
+                Comment = updateTestimonialDto.Comment,
+                ImageUrl = updateTestimonialDto.ImageUrl,
+                Name = updateTestimonialDto.Name,
+                Status = updateTestimonialDto.Status,
+                Title = updateTestimonialDto.Title,
+                TestimonialID = updateTestimonialDto.TestimonialID,
+            };
+            _testimonialService.TUpdate(testimonial);
+            if (testimonial.TestimonialID > 0)
             {
                 return RedirectToAction("Index");
             }

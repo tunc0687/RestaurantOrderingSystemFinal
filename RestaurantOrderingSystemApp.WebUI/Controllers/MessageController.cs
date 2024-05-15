@@ -1,37 +1,28 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
+using RestaurantOrderingSystemApp.BusinessLayer.Abstract;
+using RestaurantOrderingSystemApp.EntityLayer.Entities;
 using RestaurantOrderingSystemApp.WebUI.Dtos.MessageDtos;
-using System.Text;
 
 namespace RestaurantOrderingSystemApp.WebUI.Controllers
 {
-    public class MessageController : Controller
+    public class MessageController(IMessageService _messageService) : Controller
     {
-        private readonly IHttpClientFactory _httpClientFactory;
-
-        public MessageController(IHttpClientFactory httpClientFactory)
+        public IActionResult Index()
         {
-            _httpClientFactory = httpClientFactory;
-        }
-
-        public async Task<IActionResult> Index()
-        {
-            var client = _httpClientFactory.CreateClient();
-            var responseMessage = await client.GetAsync("https://localhost:7282/api/Message");
-            if (responseMessage.IsSuccessStatusCode)
+            var values = _messageService.TGetListAll();
+            if (values != null)
             {
-                var jsonData = await responseMessage.Content.ReadAsStringAsync();
-                var values = JsonConvert.DeserializeObject<List<ResultMessageDto>>(jsonData);
                 return View(values);
             }
             return View();
         }
 
-        public async Task<IActionResult> DeleteMessage(int id)
+        public IActionResult DeleteMessage(int id)
         {
-            var client = _httpClientFactory.CreateClient();
-            var responseMessage = await client.DeleteAsync($"https://localhost:7282/api/Message/{id}");
-            if (responseMessage.IsSuccessStatusCode)
+            var value = _messageService.TGetByID(id);
+            _messageService.TDelete(value);
+            value = _messageService.TGetByID(id);
+            if (value == null)
             {
                 return RedirectToAction("Index");
             }
@@ -39,45 +30,50 @@ namespace RestaurantOrderingSystemApp.WebUI.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> UpdateMessage(int id)
+        public IActionResult UpdateMessage(int id)
         {
-            var client = _httpClientFactory.CreateClient();
-            var responseMessage = await client.GetAsync($"https://localhost:7282/api/Message/{id}");
-            if (responseMessage.IsSuccessStatusCode)
+            var value = _messageService.TGetByID(id);
+            if (value != null)
             {
-                var jsonData = await responseMessage.Content.ReadAsStringAsync();
-                var values = JsonConvert.DeserializeObject<UpdateMessageDto>(jsonData);
-                return View(values);
+                return View(value);
             }
             return View();
         }
 
         [HttpPost]
-        public async Task<IActionResult> UpdateMessage(UpdateMessageDto updateMessageDto)
+        public IActionResult UpdateMessage(UpdateMessageDto updateMessageDto)
         {
             updateMessageDto.MessageSendDate = DateTime.Now;
-            var client = _httpClientFactory.CreateClient();
-            var jsonData = JsonConvert.SerializeObject(updateMessageDto);
-            StringContent stringContent = new StringContent(jsonData, Encoding.UTF8, "application/json");
-            var responseMessage = await client.PutAsync("https://localhost:7282/api/Message", stringContent);
-            if (responseMessage.IsSuccessStatusCode)
+
+            Message message = new Message()
+            {
+                Mail = updateMessageDto.Mail,
+                MessageContent = updateMessageDto.MessageContent,
+                MessageSendDate = updateMessageDto.MessageSendDate,
+                NameSurname = updateMessageDto.NameSurname,
+                Phone = updateMessageDto.Phone,
+                Status = false,
+                Subject = updateMessageDto.Subject,
+                MessageID = updateMessageDto.MessageID,
+            };
+            _messageService.TUpdate(message);
+
+            if (message.MessageID > 0)
             {
                 return RedirectToAction("Index");
             }
             return View();
         }
 
-        public async Task<IActionResult> MessageStatusChange(int id)
+        public IActionResult MessageStatusChange(int id)
         {
-            var client = _httpClientFactory.CreateClient();
-            await client.GetAsync($"https://localhost:7282/api/Message/MessageStatusChange/{id}");
+            _messageService.TMessageStatusChange(id);
             return RedirectToAction("Index");
         }
 
-        public async Task<IActionResult> AllMessageStatusesChangeToTrue()
+        public IActionResult AllMessageStatusesChangeToTrue()
         {
-            var client = _httpClientFactory.CreateClient();
-            await client.GetAsync("https://localhost:7282/api/Message/AllMessageStatusesChangeToTrue/");
+            _messageService.TAllMessageStatusesChangeToTrue();
             return RedirectToAction("Index");
         }
     }

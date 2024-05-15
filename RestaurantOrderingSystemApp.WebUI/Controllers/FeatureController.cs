@@ -1,22 +1,19 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
+using RestaurantOrderingSystemApp.BusinessLayer.Abstract;
+using RestaurantOrderingSystemApp.EntityLayer.Entities;
 using RestaurantOrderingSystemApp.WebUI.Dtos.FeatureDtos;
 using RestaurantOrderingSystemApp.WebUI.Services;
-using System.Text;
 
 namespace RestaurantOrderingSystemApp.WebUI.Controllers
 {
-    public class FeatureController(IFeatureService _featureService) : Controller
+    public class FeatureController(IFeatureService _featureService, IMapper _mapper) : Controller
     {
         public IActionResult Index()
         {
-            var client = _httpClientFactory.CreateClient();
-            var responseMessage = await client.GetAsync("https://localhost:7282/api/Feature");
-            if (responseMessage.IsSuccessStatusCode)
+            var values = _mapper.Map<List<ResultFeatureDto>>(_featureService.TGetListAll());
+            if (values != null)
             {
-                var jsonData = await responseMessage.Content.ReadAsStringAsync();
-                var values = JsonConvert.DeserializeObject<List<ResultFeatureDto>>(jsonData);
                 return View(values);
             }
             return View();
@@ -33,11 +30,17 @@ namespace RestaurantOrderingSystemApp.WebUI.Controllers
         {
             createFeatureDto.Status = true;
             createFeatureDto.ImageUrl = FileService.Upload(formFile);
-            var client = _httpClientFactory.CreateClient();
-            var jsonData = JsonConvert.SerializeObject(createFeatureDto);
-            StringContent stringContent = new StringContent(jsonData, Encoding.UTF8, "application/json");
-            var responseMessage = await client.PostAsync("https://localhost:7282/api/Feature", stringContent);
-            if (responseMessage.IsSuccessStatusCode)
+
+            var feature = new Feature()
+            {
+                Title = createFeatureDto.Title,
+                Description = createFeatureDto.Description,
+                ImageUrl = createFeatureDto.ImageUrl,
+                Status = createFeatureDto.Status,
+
+            };
+            _featureService.TAdd(feature);
+            if (feature.FeatureID > 0)
             {
                 return RedirectToAction("Index");
             }
@@ -46,9 +49,10 @@ namespace RestaurantOrderingSystemApp.WebUI.Controllers
 
         public IActionResult DeleteFeature(int id)
         {
-            var client = _httpClientFactory.CreateClient();
-            var responseMessage = await client.DeleteAsync($"https://localhost:7282/api/Feature/{id}");
-            if (responseMessage.IsSuccessStatusCode)
+            var value = _featureService.TGetByID(id);
+            _featureService.TDelete(value);
+            value = _featureService.TGetByID(id);
+            if (value == null)
             {
                 return RedirectToAction("Index");
             }
@@ -58,13 +62,10 @@ namespace RestaurantOrderingSystemApp.WebUI.Controllers
         [HttpGet]
         public IActionResult UpdateFeature(int id)
         {
-            var client = _httpClientFactory.CreateClient();
-            var responseMessage = await client.GetAsync($"https://localhost:7282/api/Feature/{id}");
-            if (responseMessage.IsSuccessStatusCode)
+            var value = _featureService.TGetByID(id);
+            if (value != null)
             {
-                var jsonData = await responseMessage.Content.ReadAsStringAsync();
-                var values = JsonConvert.DeserializeObject<UpdateFeatureDto>(jsonData);
-                return View(values);
+                return View(value);
             }
             return View();
         }
@@ -78,11 +79,18 @@ namespace RestaurantOrderingSystemApp.WebUI.Controllers
             }
 
             updateFeatureDto.Status = true;
-            var client = _httpClientFactory.CreateClient();
-            var jsonData = JsonConvert.SerializeObject(updateFeatureDto);
-            StringContent stringContent = new StringContent(jsonData, Encoding.UTF8, "application/json");
-            var responseMessage = await client.PutAsync("https://localhost:7282/api/Feature", stringContent);
-            if (responseMessage.IsSuccessStatusCode)
+
+            var feature = new Feature()
+            {
+                FeatureID = updateFeatureDto.FeatureID,
+                Title = updateFeatureDto.Title,
+                Description = updateFeatureDto.Description,
+                ImageUrl = updateFeatureDto.ImageUrl,
+                Status = updateFeatureDto.Status
+            };
+            _featureService.TUpdate(feature);
+
+            if (feature.FeatureID > 0)
             {
                 return RedirectToAction("Index");
             }

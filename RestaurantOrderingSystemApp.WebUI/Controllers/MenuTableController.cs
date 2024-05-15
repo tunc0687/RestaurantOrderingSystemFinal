@@ -1,26 +1,23 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
+using RestaurantOrderingSystemApp.BusinessLayer.Abstract;
+using RestaurantOrderingSystemApp.EntityLayer.Entities;
 using RestaurantOrderingSystemApp.WebUI.Dtos.MenuTableDtos;
 using RestaurantOrderingSystemApp.WebUI.Services;
-using System.Text;
 
 namespace RestaurantOrderingSystemApp.WebUI.Controllers
 {
-    public class MenuTableController(IMenuTableService _menuTableService, IMenuService _menuService) : Controller
+    public class MenuTableController(IMenuTableService _menuTableService) : Controller
     {
         public IActionResult Index()
         {
-            var client = _httpClientFactory.CreateClient();
-            var responseMessage = await client.GetAsync("https://localhost:7282/api/MenuTable");
-            if (responseMessage.IsSuccessStatusCode)
+            var values = _menuTableService.TGetListAll();
+            if (values != null)
             {
-                var jsonData = await responseMessage.Content.ReadAsStringAsync();
-                var values = JsonConvert.DeserializeObject<List<ResultMenuTableDto>>(jsonData);
                 List<string> menuTablesQrCodeImages = new List<string>();
                 List<string> encodeMenuTableIdList = new List<string>();
                 foreach (var value in values)
                 {
-                    string encodeUrl = "https://localhost:7013/Menu/Index?mtCode=" + AesOperation.Encode($"{value.MenuTableID}");
+                    string encodeUrl = "https://bkrestoran.online/Menu/Index?mtCode=" + AesOperation.Encode($"{value.MenuTableID}");
                     menuTablesQrCodeImages.Add(QRCodeService.GenerateQrCode(encodeUrl));
                     encodeMenuTableIdList.Add(encodeUrl);
                 }
@@ -39,11 +36,15 @@ namespace RestaurantOrderingSystemApp.WebUI.Controllers
         public IActionResult CreateMenuTable(CreateMenuTableDto createMenuTableDto)
         {
             createMenuTableDto.Status = false;
-            var client = _httpClientFactory.CreateClient();
-            var jsonData = JsonConvert.SerializeObject(createMenuTableDto);
-            StringContent stringContent = new StringContent(jsonData, Encoding.UTF8, "application/json");
-            var responseMessage = await client.PostAsync("https://localhost:7282/api/MenuTable", stringContent);
-            if (responseMessage.IsSuccessStatusCode)
+
+            MenuTable menuTable = new MenuTable()
+            {
+                Name = createMenuTableDto.Name,
+                Status = createMenuTableDto.Status,
+            };
+
+            _menuTableService.TAdd(menuTable);
+            if (menuTable.MenuTableID > 0)
             {
                 return RedirectToAction("Index");
             }
@@ -52,9 +53,10 @@ namespace RestaurantOrderingSystemApp.WebUI.Controllers
 
         public IActionResult DeleteMenuTable(int id)
         {
-            var client = _httpClientFactory.CreateClient();
-            var responseMessage = await client.DeleteAsync($"https://localhost:7282/api/MenuTable/{id}");
-            if (responseMessage.IsSuccessStatusCode)
+            var value = _menuTableService.TGetByID(id);
+            _menuTableService.TDelete(value);
+            value = _menuTableService.TGetByID(id);
+            if (value == null)
             {
                 return RedirectToAction("Index");
             }
@@ -64,13 +66,10 @@ namespace RestaurantOrderingSystemApp.WebUI.Controllers
         [HttpGet]
         public IActionResult UpdateMenuTable(int id)
         {
-            var client = _httpClientFactory.CreateClient();
-            var responseMessage = await client.GetAsync($"https://localhost:7282/api/MenuTable/{id}");
-            if (responseMessage.IsSuccessStatusCode)
+            var value = _menuTableService.TGetByID(id);
+            if (value != null)
             {
-                var jsonData = await responseMessage.Content.ReadAsStringAsync();
-                var values = JsonConvert.DeserializeObject<UpdateMenuTableDto>(jsonData);
-                return View(values);
+                return View(value);
             }
             return View();
         }
@@ -79,11 +78,16 @@ namespace RestaurantOrderingSystemApp.WebUI.Controllers
         public IActionResult UpdateMenuTable(UpdateMenuTableDto updateMenuTableDto)
         {
             updateMenuTableDto.Status = false;
-            var client = _httpClientFactory.CreateClient();
-            var jsonData = JsonConvert.SerializeObject(updateMenuTableDto);
-            StringContent stringContent = new StringContent(jsonData, Encoding.UTF8, "application/json");
-            var responseMessage = await client.PutAsync("https://localhost:7282/api/MenuTable", stringContent);
-            if (responseMessage.IsSuccessStatusCode)
+
+            MenuTable menuTable = new MenuTable()
+            {
+                MenuTableID = updateMenuTableDto.MenuTableID,
+                Name = updateMenuTableDto.Name,
+                Status = updateMenuTableDto.Status
+            };
+            _menuTableService.TUpdate(menuTable);
+
+            if (menuTable.MenuTableID > 0)
             {
                 return RedirectToAction("Index");
             }
@@ -93,12 +97,9 @@ namespace RestaurantOrderingSystemApp.WebUI.Controllers
         [HttpGet]
         public IActionResult TableListByStatus()
         {
-            var client = _httpClientFactory.CreateClient();
-            var responseMessage = await client.GetAsync("https://localhost:7282/api/MenuTable");
-            if (responseMessage.IsSuccessStatusCode)
+            var values = _menuTableService.TGetListAll();
+            if (values != null)
             {
-                var jsonData = await responseMessage.Content.ReadAsStringAsync();
-                var values = JsonConvert.DeserializeObject<List<ResultMenuTableDto>>(jsonData);
                 return View(values);
             }
             return View();

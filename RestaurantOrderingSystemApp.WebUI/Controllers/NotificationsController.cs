@@ -1,28 +1,17 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
+using RestaurantOrderingSystemApp.BusinessLayer.Abstract;
+using RestaurantOrderingSystemApp.EntityLayer.Entities;
 using RestaurantOrderingSystemApp.WebUI.Dtos.NotificationDtos;
-using System.Text;
 
 namespace RestaurantOrderingSystemApp.WebUI.Controllers
 {
-    public class NotificationsController : Controller
+    public class NotificationsController(INotificationService _notificationService) : Controller
     {
-
-        private readonly IHttpClientFactory _httpClientFactory;
-
-        public NotificationsController(IHttpClientFactory httpClientFactory)
+        public IActionResult Index()
         {
-            _httpClientFactory = httpClientFactory;
-        }
-
-        public async Task<IActionResult> Index()
-        {
-            var client = _httpClientFactory.CreateClient();
-            var responseMessage = await client.GetAsync("https://localhost:7282/api/Notification");
-            if (responseMessage.IsSuccessStatusCode)
+            var values = _notificationService.TGetListAll();
+            if (values != null)
             {
-                var jsonData = await responseMessage.Content.ReadAsStringAsync();
-                var values = JsonConvert.DeserializeObject<List<ResultNotificationDto>>(jsonData);
                 return View(values);
             }
             return View();
@@ -35,25 +24,30 @@ namespace RestaurantOrderingSystemApp.WebUI.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateNotification(CreateNotificationDto createNotificationDto)
+        public IActionResult CreateNotification(CreateNotificationDto createNotificationDto)
         {
-            createNotificationDto.Date = Convert.ToDateTime(DateTime.Now.ToShortDateString());
-            var client = _httpClientFactory.CreateClient();
-            var jsonData = JsonConvert.SerializeObject(createNotificationDto);
-            StringContent stringContent = new StringContent(jsonData, Encoding.UTF8, "application/json");
-            var responseMessage = await client.PostAsync("https://localhost:7282/api/Notification", stringContent);
-            if (responseMessage.IsSuccessStatusCode)
+            Notification notification = new Notification()
+            {
+                Description = createNotificationDto.Description,
+                IconType = createNotificationDto.IconType,
+                Status = false,
+                Date = DateTime.Now
+            };
+            _notificationService.TAdd(notification);
+
+            if (notification.NotificationID > 0)
             {
                 return RedirectToAction("Index");
             }
             return View();
         }
 
-        public async Task<IActionResult> DeleteNotification(int id)
+        public IActionResult DeleteNotification(int id)
         {
-            var client = _httpClientFactory.CreateClient();
-            var responseMessage = await client.DeleteAsync($"https://localhost:7282/api/Notification/{id}");
-            if (responseMessage.IsSuccessStatusCode)
+            var value = _notificationService.TGetByID(id);
+            _notificationService.TDelete(value);
+            value = _notificationService.TGetByID(id);
+            if (value == null)
             {
                 return RedirectToAction("Index");
             }
@@ -61,45 +55,45 @@ namespace RestaurantOrderingSystemApp.WebUI.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> UpdateNotification(int id)
+        public IActionResult UpdateNotification(int id)
         {
-            var client = _httpClientFactory.CreateClient();
-            var responseMessage = await client.GetAsync($"https://localhost:7282/api/Notification/{id}");
-            if (responseMessage.IsSuccessStatusCode)
+            var value = _notificationService.TGetByID(id);
+            if (value != null)
             {
-                var jsonData = await responseMessage.Content.ReadAsStringAsync();
-                var values = JsonConvert.DeserializeObject<UpdateNotificationDto>(jsonData);
-                return View(values);
+                return View(value);
             }
             return View();
         }
 
         [HttpPost]
-        public async Task<IActionResult> UpdateNotification(UpdateNotificationDto updateNotificationDto)
+        public IActionResult UpdateNotification(UpdateNotificationDto updateNotificationDto)
         {
-            updateNotificationDto.Date = Convert.ToDateTime(DateTime.Now.ToShortDateString());
-            var client = _httpClientFactory.CreateClient();
-            var jsonData = JsonConvert.SerializeObject(updateNotificationDto);
-            StringContent stringContent = new StringContent(jsonData, Encoding.UTF8, "application/json");
-            var responseMessage = await client.PutAsync("https://localhost:7282/api/Notification", stringContent);
-            if (responseMessage.IsSuccessStatusCode)
+            Notification notification = new Notification()
+            {
+                NotificationID = updateNotificationDto.NotificationID,
+                Description = updateNotificationDto.Description,
+                IconType = updateNotificationDto.IconType,
+                Status = updateNotificationDto.Status,
+                Date = DateTime.Now,
+            };
+            _notificationService.TUpdate(notification);
+
+            if (notification.NotificationID > 0)
             {
                 return RedirectToAction("Index");
             }
             return View();
         }
 
-        public async Task<IActionResult> NotificationStatusChange(int id)
+        public IActionResult NotificationStatusChange(int id)
         {
-            var client = _httpClientFactory.CreateClient();
-            await client.GetAsync($"https://localhost:7282/api/Notification/NotificationStatusChange/{id}");
+            _notificationService.TNotificationStatusChange(id);
             return RedirectToAction("Index");
         }
 
-        public async Task<IActionResult> AllNotificationStatusesChangeToTrue()
+        public IActionResult AllNotificationStatusesChangeToTrue()
         {
-            var client = _httpClientFactory.CreateClient();
-            await client.GetAsync("https://localhost:7282/api/Notification/AllNotificationStatusesChangeToTrue/");
+            _notificationService.TAllNotificationStatusesChangeToTrue();
             return RedirectToAction("Index");
         }
     }
