@@ -10,16 +10,9 @@ using System.Text;
 namespace RestaurantOrderingSystemApp.WebUI.Controllers
 {
     [AllowAnonymous]
-    public class MenuController : Controller
+    public class MenuController(IMenuTableService _menuTableService, IBasketService _basketService) : Controller
     {
-        private readonly IHttpClientFactory _httpClientFactory;
-
-        public MenuController(IHttpClientFactory httpClientFactory)
-        {
-            _httpClientFactory = httpClientFactory;
-        }
-
-        public async Task<IActionResult> Index(string mtCode = "bkrestoran")
+        public IActionResult Index(string mtCode = "bkrestoran")
         {
             var tableId = HttpContext.Session.GetInt32("MenuTableId");
             var menuTableId = Convert.ToInt32(AesOperation.Decode(mtCode));
@@ -54,7 +47,7 @@ namespace RestaurantOrderingSystemApp.WebUI.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddBasket([FromBody] CreateBasketDto createBasketDto)
+        public IActionResult AddBasket([FromBody] CreateBasketDto createBasketDto)
         {
             var client = _httpClientFactory.CreateClient();
             var jsonData = JsonConvert.SerializeObject(createBasketDto);
